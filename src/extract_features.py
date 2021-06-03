@@ -19,23 +19,22 @@ if __name__ == '__main__':
     imgIds = []
     labels = []
     for _, row in data.iterrows():
-        if row['attribute_ids'] == 51 or row['attribute_ids'] == 13:
-            imgIds.append(row['id'])
-            labels.append(row['attribute_ids'])
+        imgIds.append(row['id'])
+        labels.append(row['attribute_ids'])
 
     imagePaths = [os.path.join(imgDir, '{}.png'.format(id)) for id in imgIds]
 
-    X_train, X_test, y_train, y_test = train_test_split(imagePaths, labels,
-                                                        stratify=labels,
-                                                        test_size=0.10)
+    # X_train, X_test, y_train, y_test = train_test_split(imagePaths, labels,
+    #                                                     stratify=labels,
+    #                                                     test_size=0.10)
 
-    labels = y_test
-    imagePaths = X_test
+    # labels = y_test
+    # imagePaths = X_test
 
-    plt.hist(labels, bins=70)
-    plt.savefig('hist.png')
+    # plt.hist(labels, bins=70)
+    # plt.savefig('plots/hist.png')
 
-    nWords = 10
+    nWords = 100
 
     vocab = Vocabulary(nWords)
     vocab.train(imagePaths)
@@ -52,6 +51,7 @@ if __name__ == '__main__':
         'ids': imgIds,
         'X': features,
         'y': labels,
+        'nWords': nWords,
     }
 
     pickle.dump(dataset, open(os.path.join(outputDir, 'processed.p'), 'wb'))
