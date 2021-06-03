@@ -34,12 +34,32 @@ if __name__ == '__main__':
     # plt.hist(labels, bins=70)
     # plt.savefig('plots/hist.png')
 
-    nWords = 100
+    nWords = 1000
+    existingDescriptors = None
 
-    vocab = Vocabulary(nWords)
-    vocab.train(imagePaths)
-    vocab.save(os.path.join(outputDir, 'vocab.npy'))
+    # Check if descriptor files exists
+    if os.path.exists(os.path.join(outputDir, f'descriptors.p')):
+        with open(os.path.join(outputDir, f'descriptors.p'), 'rb') as inFile:
+            existingDescriptors = pickle.load(inFile)
+    
+    # Check if vocab files exists
+    if os.path.exists(os.path.join(outputDir, f'vocab_{nWords}.npy')):
 
+        with open(os.path.join(outputDir, f'vocab_{nWords}.npy'), 'rb') as inFile:
+            vocab = Vocabulary.load(inFile)
+    else:
+        # Create vocabulary
+        vocab = Vocabulary(nWords)
+        descriptors = vocab.train(imagePaths, existingDescriptors)
+        # Save vocabulary
+        vocab.save(os.path.join(outputDir, f'vocab_{nWords}.npy'))
+    
+    # Save descriptors 
+    if not existingDescriptors:
+        with open(os.path.join(outputDir, f'descriptors.p'), 'wb') as outFile:
+            pickle.dump(descriptors, outFile)
+    del existingDescriptors
+    # Featurize images using BOW
     featurizer = FeatureExtractor(vocab)
     features = []
     for path in tqdm(imagePaths, desc="Extracting BoW feature vector"):
@@ -54,4 +74,5 @@ if __name__ == '__main__':
         'nWords': nWords,
     }
 
-    pickle.dump(dataset, open(os.path.join(outputDir, 'processed.p'), 'wb'))
+    with open(os.path.join(outputDir, f'processed_{nWords}.p'), 'wb') as outFile:
+        pickle.dump(dataset,outFile )
