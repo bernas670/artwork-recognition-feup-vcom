@@ -11,7 +11,7 @@ def plot_confusion_matrix(matrix, nClasses):
     plt.savefig("plots/confusion_matrix_plot.png")
 
 
-def openImage(path):
+def open_image(path):
     image = cv.imread(path)
 
     if image is None:

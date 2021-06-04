@@ -3,46 +3,46 @@ import cv2 as cv
 import numpy as np
 from tqdm import tqdm
 
-from utils import openImage
+from utils import open_image
 
 
 class Vocabulary:
-    def __init__(self, nWords, words=None):
+    def __init__(self, n_words, words=None):
         self.words = words
-        self.nWords = nWords
+        self.size = n_words
 
-    def train(self, imagePaths=None, descriptors=None, detector=cv.KAZE_create(), verbose=True):
-        if imagePaths is None and descriptors is None:
-            print(' !! one of imagePaths or descriptors needs to be specified')
+    def train(self, image_paths=None, descriptors=None, detector=cv.KAZE_create(), verbose=True):
+        if image_paths is None and descriptors is None:
+            print(' !! one of image_paths or descriptors needs to be specified')
             return
 
-        allDescriptors = descriptors
+        all_descriptors = descriptors
         if descriptors is None:
-            allDescriptors = self.extract_descriptors(
-                imagePaths, detector, verbose=verbose)
+            all_descriptors = self.extract_descriptors(
+                image_paths, detector, verbose=verbose)
 
-        bowTrainer = cv.BOWKMeansTrainer(self.nWords)
-        bowTrainer.add(np.float32(allDescriptors))
+        bow_trainer = cv.BOWKMeansTrainer(self.size)
+        bow_trainer.add(np.float32(all_descriptors))
 
         if verbose:
-            print("Clustering (k={}) ...".format(self.nWords))
+            print("Clustering (k={}) ...".format(self.size))
 
-        self.words = bowTrainer.cluster()
+        self.words = bow_trainer.cluster()
 
-        return allDescriptors
+        return all_descriptors
 
-    def extract_descriptors(self, imagePaths, detector, verbose=True):
-        allDescriptors = []
-        for path in tqdm(imagePaths, disable=not verbose, desc="Computing feature descriptors"):
-            img = openImage(path)
+    def extract_descriptors(self, image_paths, detector, verbose=True):
+        all_descriptors = []
+        for path in tqdm(image_paths, disable=not verbose, desc="Computing feature descriptors"):
+            img = open_image(path)
 
             if img is None:
                 continue
             keypoints, descriptors = detector.detectAndCompute(img, None)
 
             if descriptors is not None:
-                allDescriptors.extend(descriptors)
-        return allDescriptors
+                all_descriptors.extend(descriptors)
+        return all_descriptors
 
     def save(self, path):
         np.save(path, self.words)
