@@ -13,8 +13,7 @@ class Vocabulary:
 
     def train(self, image_paths=None, descriptors=None, detector=cv.KAZE_create(), verbose=True):
         if image_paths is None and descriptors is None:
-            print(' !! one of image_paths or descriptors needs to be specified')
-            return
+            raise Exception('One of image_paths or descriptors needs to be specified')
 
         all_descriptors = descriptors
         if descriptors is None:
