@@ -9,12 +9,13 @@ from tensorflow.python.keras.models import Sequential
 from keras_preprocessing.image import ImageDataGenerator
 import matplotlib.pyplot as plt
 
+from augment_data import viagra_no_dataset
 import dl_models
 
 img_dir = "data/images"
 out_dir = "output"
 
-IMAGE_DIMS = (128,128,3)
+IMAGE_DIMS = (224,224,3)
 BATCH_SIZE = 32
 CLASS_COUNT = 70
 
@@ -23,15 +24,20 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir='logs', histogram_freq=1, update_freq='batch')
 
 if __name__ == '__main__':
-  df = pd.read_csv('data/multiclass.csv')
+  df = pd.read_csv('data/multiclass.csv')       # get original dataset
   df['id'] = df['id'] + ".png"
   df['attribute_ids'] = df['attribute_ids'].astype(str)
+  
+  aug_df = viagra_no_dataset(df, 300, (224,224))    # augment dataset
+
+  aug_df['id'] = aug_df['id'] + ".png"
+  aug_df['attribute_ids'] = aug_df['attribute_ids'].astype(str)
 
   data_generator = ImageDataGenerator(validation_split=0.2)
 
   train_gen = data_generator.flow_from_dataframe(
-    dataframe=df,
-    directory=img_dir,
+    dataframe=aug_df,
+    directory="data/augmented",
     x_col='id',
     y_col='attribute_ids',
     class_mode='categorical',
@@ -52,7 +58,7 @@ if __name__ == '__main__':
     subset='validation'
   )
 
-  model = dl_models.get_mobile_model(IMAGE_DIMS, 50)
+  model = dl_models.get_paper_net(IMAGE_DIMS, 50)
 
   model.compile(loss='categorical_crossentropy', optimizer='adam',metrics=['accuracy'])
   history = model.fit(
