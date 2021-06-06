@@ -28,7 +28,7 @@ if __name__ == '__main__':
   df['id'] = df['id'] + ".png"
   df['attribute_ids'] = df['attribute_ids'].astype(str)
   
-  aug_df = viagra_no_dataset(df, 300, (224,224))    # augment dataset
+  aug_df = viagra_no_dataset(df, 1, (224,224))    # augment dataset
 
   aug_df['id'] = aug_df['id'] + ".png"
   aug_df['attribute_ids'] = aug_df['attribute_ids'].astype(str)

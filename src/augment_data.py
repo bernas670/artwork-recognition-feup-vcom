@@ -1,20 +1,9 @@
-import numpy as np
 import re
 import os
-import pandas as pd
-import datetime
-from pandas.core.frame import DataFrame
-import tensorflow as tf
 import glob
-from tensorflow.keras.layers import Conv2D, Dropout, Dense, Flatten, MaxPooling2D
-from tensorflow.keras.applications.mobilenet_v2 import MobileNetV2
-from tensorflow.keras.applications.vgg19 import VGG19
-from tensorflow.python.keras.models import Sequential
-from keras_preprocessing.image import ImageDataGenerator
-import matplotlib.pyplot as plt
-from sklearn.utils import compute_class_weight
 
-import dl_models
+from pandas.core.frame import DataFrame
+from keras_preprocessing.image import ImageDataGenerator
 
 
 def update_dataframe(key, df, out_dir):
