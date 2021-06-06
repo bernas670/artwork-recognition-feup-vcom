@@ -35,7 +35,7 @@ def generate_images(generator, dataframe, image_dimensions, prefix, num_images, 
         gen.next()
 
 
-def viagra_no_dataset(dataframe, target, image_dims, src_dir="data/images", out_dir="data/augmented"):
+def viagra_no_dataset(dataframe, target, image_dims, src_dir="data/images", out_dir="data/augmented", csv_dir="data/augmented_labels.csv"):
 
     augmented_dataframe = DataFrame(columns=['id', 'attribute_ids'])
     counts = dataframe['attribute_ids'].value_counts().to_dict()
@@ -82,5 +82,5 @@ def viagra_no_dataset(dataframe, target, image_dims, src_dir="data/images", out_
             key, augmented_dataframe, out_dir)
 
     # save dataframe
-    augmented_dataframe.to_csv('data/augmented_labels.csv')
+    augmented_dataframe.to_csv(csv_dir)
     return augmented_dataframe
