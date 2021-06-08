@@ -3,7 +3,7 @@ import os
 import glob
 
 from pandas.core.frame import DataFrame
-from tensorflow.keras_preprocessing.image import ImageDataGenerator
+from keras_preprocessing.image import ImageDataGenerator
 
 
 def update_dataframe(key, df, out_dir):
@@ -49,22 +49,10 @@ def augment_dataset(dataframe, target, image_dims, src_dir="data/images", out_di
         rotation_range=20,
     )
 
-    data_down_generator = ImageDataGenerator()
-
     for key, value in counts.items():
 
         # add existing images to the augmented dataset
         images_from_class = dataframe[dataframe['attribute_ids'] == key]
-
-        generate_images(
-            generator=data_down_generator,
-            dataframe=images_from_class,
-            image_dimensions=image_dims,
-            prefix=key,
-            num_images=min(target, value),
-            src_dir=src_dir,
-            out_dir=out_dir
-        )
 
         if value < target:
             generate_images(
@@ -82,5 +70,5 @@ def augment_dataset(dataframe, target, image_dims, src_dir="data/images", out_di
             key, augmented_dataframe, out_dir)
 
     # save dataframe
-    augmented_dataframe.to_csv(csv_dir)
+    augmented_dataframe.to_csv(csv_dir, index=False)
     return augmented_dataframe

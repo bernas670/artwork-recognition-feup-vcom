@@ -3,33 +3,27 @@ import pickle
 import pandas as pd
 import tensorflow as tf
 import datetime
-import math
 from keras_preprocessing.image import ImageDataGenerator
 physical_devices = tf.config.list_physical_devices('GPU') 
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
 import dl_models
 import augment_data
-from sklearn.model_selection import train_test_split
-from matplotlib import pyplot as plt
 
 BATCH_SIZE = 32
-CLASS_COUNT = 50
-EPOCHS = 1
+CLASS_COUNT = 2
+EPOCHS = 10
 MODEL_DIR = "models"
 MODEL_NAME = "alex_test" + "_" + datetime.datetime.now().strftime("%d-%H%M%S")
-DATASET_CSV = "data/multiclass.csv"
-AUG_DATASET_CSV = "data/aug.csv"
-IMAGE_FOLDER = "data/images"
+TRAINING_SET_CSV = "data_task3/dataset/training_set.csv"
+VALIDATION_SET_CSV = "data_task3/dataset/validation_set.csv"
+TRAINING_IMAGE_FOLDER = "data_task3/dataset/training_set"
+VALIDATION_IMAGE_FOLDER = "data_task3/dataset/validation_set"
 SAVE_MODEL = True
-SAVE_HISTORY = True
+SAVE_HISTORY = False
 SAVE_LOGS = False
-AUGMENT_DATA = True
-AUGMENT_COUNT = 100
-AUGMENT_GEN = False
 
 # Metrics
 metrics = [
-  "accuracy"
   # tf.keras.metrics.Precision(thresholds=None, top_k=None, class_id=None, name=None, dtype=None),
   # tf.keras.metrics.Recall(),
   # tf.keras.metrics.TruePositives(),
@@ -46,7 +40,12 @@ metrics = [
 # Tensorboard Configuration
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-# Callbacks
+if SAVE_LOGS:
+  LOG_DIR = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+  tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=LOG_DIR, histogram_freq=1, update_freq='batch')
+else:
+  tensorboard_callback = None
+
 callbacks = [
   tf.keras.callbacks.CSVLogger(os.path.join(MODEL_DIR, f'{MODEL_NAME}.csv'), separator=",", append=False),
   tf.keras.callbacks.EarlyStopping(monitor="val_loss", min_delta=0,patience=2,verbose=1,mode="auto",baseline=None,restore_best_weights=True),
@@ -60,52 +59,30 @@ callbacks = [
   ))
 ]
 
-if SAVE_LOGS:
-  LOG_DIR = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-  tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=LOG_DIR, histogram_freq=1, update_freq='batch')
-  callbacks.append(tensorboard_callback)  
+if tensorboard_callback:
+  callbacks.append(tensorboard_callback)
 
 if __name__ == '__main__':
 
-  # Get dataset csv
-  df = pd.read_csv(DATASET_CSV)       
-  df['id'] = df['id'] + ".png"
-  df['attribute_ids'] = df['attribute_ids'].astype(str)
+  # Get training dataset csv
+  train_df = pd.read_csv(TRAINING_SET_CSV)       
+  train_df['id'] = train_df['id'] + ".jpg"
+  train_df['attribute_ids'] = train_df['attribute_ids'].astype(str)
+
+  # Get validation dataset csv
+  val_df = pd.read_csv(VALIDATION_SET_CSV)      
+  val_df['id'] = val_df['id'] + ".jpg"
+  val_df['attribute_ids'] = val_df['attribute_ids'].astype(str)
 
   # Get model
   model, image_dims, preprocessing_func = dl_models.get_paper_net_cam(CLASS_COUNT, activation="softmax")
-  
-  if AUGMENT_DATA: 
-    if AUGMENT_GEN:
-      aug_df = augment_data.augment_dataset(df, AUGMENT_COUNT, image_dims, src_dir=IMAGE_FOLDER, out_dir=IMAGE_FOLDER, csv_dir=AUG_DATASET_CSV)    # augment dataset
-    else:
-      aug_df = pd.read_csv(AUG_DATASET_CSV)       
 
-    aug_df['id'] = aug_df['id'] + ".png"
-    aug_df['attribute_ids'] = aug_df['attribute_ids'].astype(str)
-
-  # Get test set
-  x_rest, x_test, y_rest, y_test = train_test_split(df['id'], df['attribute_ids'], test_size=0.15, stratify=df['attribute_ids'])
-  rest_df = pd.DataFrame({"id": x_rest, "attribute_ids": y_rest})
-  test_df = pd.DataFrame({"id": x_test, "attribute_ids": y_test})
-
-  # Get val/train set
-  size = math.floor(len(rest_df) * 0.15) if AUGMENT_DATA else 0.15
-  x_train, x_validation, y_train, y_validation = train_test_split(rest_df['id'], rest_df['attribute_ids'], test_size=size, stratify=rest_df['attribute_ids'])
-  train_df = pd.DataFrame({"id": x_train, "attribute_ids": y_train})
-  validation_df = pd.DataFrame({"id": x_validation, "attribute_ids": y_validation})
-  
-  if AUGMENT_DATA:
-    train_df = train_df.append(aug_df)
-
-  train_df["attribute_ids"].astype(int).plot.hist(bins=70)
-  plt.show()
   # Prepare data
   data_generator = ImageDataGenerator(preprocessing_function=preprocessing_func)
 
   train_gen = data_generator.flow_from_dataframe(
     dataframe=train_df,
-    directory=IMAGE_FOLDER,
+    directory=TRAINING_IMAGE_FOLDER,
     x_col='id',
     y_col='attribute_ids',
     class_mode='categorical',
@@ -115,19 +92,8 @@ if __name__ == '__main__':
   )
 
   validation_gen = data_generator.flow_from_dataframe(
-    dataframe=validation_df,
-    directory=IMAGE_FOLDER,
-    x_col='id',
-    y_col='attribute_ids',
-    class_mode='categorical',
-    shuffle=True,
-    target_size=image_dims,
-    batch_size=BATCH_SIZE,
-  )
-
-  test_gen = data_generator.flow_from_dataframe(
-    dataframe=test_df,
-    directory=IMAGE_FOLDER,
+    dataframe=val_df,
+    directory=VALIDATION_IMAGE_FOLDER,
     x_col='id',
     y_col='attribute_ids',
     class_mode='categorical',
@@ -137,7 +103,7 @@ if __name__ == '__main__':
   )
 
   # Compile model
-  model.compile(loss='categorical_crossentropy', optimizer='adam',metrics=metrics)
+  model.compile(loss='categorical_crossentropy', optimizer='adam',metrics=["accuracy"])
 
   # Train model
   history = model.fit(
@@ -148,16 +114,11 @@ if __name__ == '__main__':
     callbacks=callbacks 
     )
 
-  # Test model
-  test_results = model.evaluate(
-      x=test_gen,
-      verbose=1,
-  )
-
   # Save model and training history
+
   if SAVE_MODEL:
     model.save(os.path.join(MODEL_DIR, f'{MODEL_NAME}.h5'))
 
   if SAVE_HISTORY:
     with open(os.path.join(MODEL_DIR, f'{MODEL_NAME}.history'), "wb") as output_file:
-      pickle.dump({"history": history.history, "test": test_results}, output_file)
+      pickle.dump(history.history, output_file)
