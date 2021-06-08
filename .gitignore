@@ -6,6 +6,7 @@ data/augmented/**.png
 data_task3/dataset/**/**.jpg
 data_task3/dataset/**/**.jpeg
 data_task3/dataset/**.png
+data_task3/CUB_200_2011/**
 
 models/**.h5
 models/**.history

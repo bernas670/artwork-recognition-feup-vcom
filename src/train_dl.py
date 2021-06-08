@@ -8,11 +8,12 @@ physical_devices = tf.config.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
 import dl_models
 
+
 BATCH_SIZE = 32
 CLASS_COUNT = 2
-EPOCHS = 4
+EPOCHS = 10
 MODEL_DIR = "models"
-MODEL_NAME = "alex"
+MODEL_NAME = "alex_test" + "_" + datetime.datetime.now().strftime("%d-%H%M%S")
 TRAINING_SET_CSV = "data_task3/dataset/training_set.csv"
 VALIDATION_SET_CSV = "data_task3/dataset/validation_set.csv"
 TRAINING_IMAGE_FOLDER = "data_task3/dataset/training_set"
@@ -22,17 +23,17 @@ SAVE_HISTORY = False
 SAVE_LOGS = False
 
 # Metrics
-
 metrics = [
+  "accuracy"
   # tf.keras.metrics.Precision(thresholds=None, top_k=None, class_id=None, name=None, dtype=None),
   # tf.keras.metrics.Recall(),
-  tf.keras.metrics.TruePositives(),
-  tf.keras.metrics.TrueNegatives(),
-  tf.keras.metrics.FalseNegatives(),
-  tf.keras.metrics.FalsePositives(),
+  # tf.keras.metrics.TruePositives(),
+  # tf.keras.metrics.TrueNegatives(),
+  # tf.keras.metrics.FalseNegatives(),
+  # tf.keras.metrics.FalsePositives(),
   # tf.keras.metrics.AUC(),
-  tf.keras.metrics.Accuracy(name="accuracy", dtype=None),
-  tf.keras.metrics.CategoricalAccuracy(name="categorical_accuracy", dtype=None),
+  # tf.keras.metrics.Accuracy(name="accuracy", dtype=None),
+  # tf.keras.metrics.CategoricalAccuracy(name="categorical_accuracy", dtype=None),
   # tf.keras.metrics.BinaryAccuracy(name="binary_accuracy", dtype=None, threshold=0.5),
   # tf.keras.metrics.TopKCategoricalAccuracy(k=5, name="top_5_categorical_accuracy", dtype=None)
 ]
@@ -45,6 +46,22 @@ if SAVE_LOGS:
   tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=LOG_DIR, histogram_freq=1, update_freq='batch')
 else:
   tensorboard_callback = None
+
+callbacks = [
+  tf.keras.callbacks.CSVLogger(os.path.join(MODEL_DIR, f'{MODEL_NAME}.csv'), separator=",", append=False),
+  tf.keras.callbacks.EarlyStopping(monitor="val_loss", min_delta=0,patience=2,verbose=1,mode="auto",baseline=None,restore_best_weights=True),
+  tf.keras.callbacks.ModelCheckpoint(
+    save_freq= 'epoch' ,
+    monitor = 'val_loss',
+    save_best_only=True,
+    mode='min',
+    verbose=1,
+    filepath = os.path.join(MODEL_DIR, f'{MODEL_NAME}.h5',
+  ))
+]
+
+if tensorboard_callback:
+  callbacks.append(tensorboard_callback)
 
 if __name__ == '__main__':
 
@@ -87,7 +104,7 @@ if __name__ == '__main__':
   )
 
   # Compile model
-  model.compile(loss='categorical_crossentropy', optimizer='adam',metrics=metrics)
+  model.compile(loss='categorical_crossentropy', optimizer='adam',metrics=["accuracy"])
 
   # Train model
   history = model.fit(
@@ -95,7 +112,7 @@ if __name__ == '__main__':
     validation_data=validation_gen,
     epochs=EPOCHS,
     verbose=1,
-    callbacks=[tensorboard_callback] if SAVE_LOGS else None
+    callbacks=callbacks 
     )
 
   # Save model and training history
