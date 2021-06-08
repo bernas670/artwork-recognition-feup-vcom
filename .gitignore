@@ -3,7 +3,13 @@ __pycache__
 
 data/images/**.png
 data/augmented/**.png
+data_task3/dataset/**/**.jpg
+data_task3/dataset/**/**.jpeg
+data_task3/dataset/**.png
 
+models/**.h5
+models/**.history
 output/
 
 logs/
+*.zip

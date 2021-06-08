@@ -3,7 +3,7 @@ import os
 import glob
 
 from pandas.core.frame import DataFrame
-from keras_preprocessing.image import ImageDataGenerator
+from tensorflow.keras_preprocessing.image import ImageDataGenerator
 
 
 def update_dataframe(key, df, out_dir):
@@ -35,7 +35,7 @@ def generate_images(generator, dataframe, image_dimensions, prefix, num_images, 
         gen.next()
 
 
-def viagra_no_dataset(dataframe, target, image_dims, src_dir="data/images", out_dir="data/augmented", csv_dir="data/augmented_labels.csv"):
+def augment_dataset(dataframe, target, image_dims, src_dir="data/images", out_dir="data/augmented", csv_dir="data/augmented_labels.csv"):
 
     augmented_dataframe = DataFrame(columns=['id', 'attribute_ids'])
     counts = dataframe['attribute_ids'].value_counts().to_dict()
