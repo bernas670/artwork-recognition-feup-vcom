@@ -19,10 +19,13 @@ CONV_LAYER_NAME = "conv2d_5"
 CLASS_COUNT = 2
 LABELS = ['Painting', 'Statue']
 
-model = tf.keras.models.load_model(MODEL_PATH)
-model.summary()
+# model = tf.keras.models.load_model(MODEL_PATH)
+# model.summary()
 
-_, img_size, preprocessing = dl_models.get_paper_net_cam(CLASS_COUNT, 'sigmoid')
+_, img_size, preprocessing = dl_models.get_inception_v3(CLASS_COUNT, 'sigmoid')
+_.summary()
+_, img_size, preprocessing = dl_models.get_inception_v3_transfer(CLASS_COUNT, 'sigmoid')
+_.summary()
 preprocessing = preprocessing if preprocessing else lambda x:x
 
 # Remove last layer's softmax

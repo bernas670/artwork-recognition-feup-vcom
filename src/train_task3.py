@@ -13,13 +13,13 @@ BATCH_SIZE = 32
 CLASS_COUNT = 2
 EPOCHS = 10
 MODEL_DIR = "models"
-MODEL_NAME = "alex_test" + "_" + datetime.datetime.now().strftime("%d-%H%M%S")
+MODEL_NAME = "vgg_cam" + "_" + datetime.datetime.now().strftime("%d-%H%M%S")
 TRAINING_SET_CSV = "data_task3/dataset/training_set.csv"
 VALIDATION_SET_CSV = "data_task3/dataset/validation_set.csv"
 TRAINING_IMAGE_FOLDER = "data_task3/dataset/training_set"
 VALIDATION_IMAGE_FOLDER = "data_task3/dataset/validation_set"
 SAVE_MODEL = True
-SAVE_HISTORY = False
+SAVE_HISTORY = True
 SAVE_LOGS = False
 
 # Metrics
@@ -32,7 +32,7 @@ metrics = [
   # tf.keras.metrics.FalsePositives(),
   # tf.keras.metrics.AUC(),
   # tf.keras.metrics.Accuracy(name="accuracy", dtype=None),
-  # tf.keras.metrics.CategoricalAccuracy(name="categorical_accuracy", dtype=None),
+  tf.keras.metrics.CategoricalAccuracy(name="categorical_accuracy", dtype=None),
   # tf.keras.metrics.BinaryAccuracy(name="binary_accuracy", dtype=None, threshold=0.5),
   # tf.keras.metrics.TopKCategoricalAccuracy(k=5, name="top_5_categorical_accuracy", dtype=None)
 ]
@@ -75,7 +75,7 @@ if __name__ == '__main__':
   val_df['attribute_ids'] = val_df['attribute_ids'].astype(str)
 
   # Get model
-  model, image_dims, preprocessing_func = dl_models.get_paper_net_cam(CLASS_COUNT, activation="softmax")
+  model, image_dims, preprocessing_func = dl_models.get_vgg19_cam(CLASS_COUNT, activation="softmax")
 
   # Prepare data
   data_generator = ImageDataGenerator(preprocessing_function=preprocessing_func)
