@@ -88,3 +88,18 @@ def get_vgg19_cam(class_count, activation='softmax'):
   new_model.summary()
 
   return new_model, (224, 224), tf.keras.applications.vgg19.preprocess_input
+
+def get_inception_v3_transfer(class_count, activation='softmax'): 
+  # create the base pre-trained model
+  base_model = tf.keras.applications.InceptionV3(weights='imagenet', include_top=False)
+
+  x = base_model.output
+  x = GlobalAveragePooling2D()(x)
+  predictions = Dense(class_count, activation=activation)(x)
+
+  model_tl = tf.keras.Model(inputs=base_model.input, outputs=predictions)
+
+  for layer in base_model.layers:
+      layer.trainable = False
+
+  return model_tl, (299, 299), tf.keras.applications.inception_v3.preprocess_input

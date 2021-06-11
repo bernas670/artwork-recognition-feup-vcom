@@ -14,33 +14,34 @@ from matplotlib import pyplot as plt
 
 BATCH_SIZE = 32
 CLASS_COUNT = 50
-EPOCHS = 1
+EPOCHS = 100
 MODEL_DIR = "models"
-MODEL_NAME = "alex_test" + "_" + datetime.datetime.now().strftime("%d-%H%M%S")
-DATASET_CSV = "data/multiclass.csv"
+MODEL_NAME = "incep_3" + "_" + datetime.datetime.now().strftime("%d-%H%M%S")
+TRAIN_DATASET_CSV = "data/multiclass_train.csv"
+TEST_DATASET_CSV = "data/multiclass_test.csv"
 AUG_DATASET_CSV = "data/aug.csv"
 IMAGE_FOLDER = "data/images"
 SAVE_MODEL = True
 SAVE_HISTORY = True
 SAVE_LOGS = False
-AUGMENT_DATA = True
+AUGMENT_DATA = False
 AUGMENT_COUNT = 100
 AUGMENT_GEN = False
 
 # Metrics
 metrics = [
-  "accuracy"
-  # tf.keras.metrics.Precision(thresholds=None, top_k=None, class_id=None, name=None, dtype=None),
-  # tf.keras.metrics.Recall(),
-  # tf.keras.metrics.TruePositives(),
-  # tf.keras.metrics.TrueNegatives(),
-  # tf.keras.metrics.FalseNegatives(),
-  # tf.keras.metrics.FalsePositives(),
-  # tf.keras.metrics.AUC(),
+  "accuracy",
+  tf.keras.metrics.Precision(thresholds=None, top_k=None, class_id=None, name=None, dtype=None),
+  tf.keras.metrics.Recall(),
+  tf.keras.metrics.TruePositives(),
+  tf.keras.metrics.TrueNegatives(),
+  tf.keras.metrics.FalseNegatives(),
+  tf.keras.metrics.FalsePositives(),
+  tf.keras.metrics.AUC(),
   # tf.keras.metrics.Accuracy(name="accuracy", dtype=None),
-  # tf.keras.metrics.CategoricalAccuracy(name="categorical_accuracy", dtype=None),
+  tf.keras.metrics.CategoricalAccuracy(name="categorical_accuracy", dtype=None),
   # tf.keras.metrics.BinaryAccuracy(name="binary_accuracy", dtype=None, threshold=0.5),
-  # tf.keras.metrics.TopKCategoricalAccuracy(k=5, name="top_5_categorical_accuracy", dtype=None)
+  tf.keras.metrics.TopKCategoricalAccuracy(k=5, name="top_5_categorical_accuracy", dtype=None)
 ]
 
 # Tensorboard Configuration
@@ -49,7 +50,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 # Callbacks
 callbacks = [
   tf.keras.callbacks.CSVLogger(os.path.join(MODEL_DIR, f'{MODEL_NAME}.csv'), separator=",", append=False),
-  tf.keras.callbacks.EarlyStopping(monitor="val_loss", min_delta=0,patience=2,verbose=1,mode="auto",baseline=None,restore_best_weights=True),
+  tf.keras.callbacks.EarlyStopping(monitor="val_loss", min_delta=0,patience=5,verbose=1,mode="auto",baseline=None,restore_best_weights=True),
   tf.keras.callbacks.ModelCheckpoint(
     save_freq= 'epoch' ,
     monitor = 'val_loss',
@@ -67,14 +68,14 @@ if SAVE_LOGS:
 
 if __name__ == '__main__':
 
-  # Get dataset csv
-  df = pd.read_csv(DATASET_CSV)       
+    # Get dataset csv
+  df = pd.read_csv(TRAIN_DATASET_CSV)
   df['id'] = df['id'] + ".png"
   df['attribute_ids'] = df['attribute_ids'].astype(str)
 
   # Get model
-  model, image_dims, preprocessing_func = dl_models.get_paper_net_cam(CLASS_COUNT, activation="softmax")
-  
+  model, image_dims, preprocessing_func = dl_models.get_inception_v3_transfer(CLASS_COUNT, activation="softmax")
+    
   if AUGMENT_DATA: 
     if AUGMENT_GEN:
       aug_df = augment_data.augment_dataset(df, AUGMENT_COUNT, image_dims, src_dir=IMAGE_FOLDER, out_dir=IMAGE_FOLDER, csv_dir=AUG_DATASET_CSV)    # augment dataset
@@ -84,14 +85,14 @@ if __name__ == '__main__':
     aug_df['id'] = aug_df['id'] + ".png"
     aug_df['attribute_ids'] = aug_df['attribute_ids'].astype(str)
 
-  # Get test set
-  x_rest, x_test, y_rest, y_test = train_test_split(df['id'], df['attribute_ids'], test_size=0.15, stratify=df['attribute_ids'])
-  rest_df = pd.DataFrame({"id": x_rest, "attribute_ids": y_rest})
-  test_df = pd.DataFrame({"id": x_test, "attribute_ids": y_test})
+  test_df = pd.read_csv(TEST_DATASET_CSV)
+  test_df['id'] = test_df['id'] + ".png"
+  test_df['attribute_ids'] = test_df['attribute_ids'].astype(str)
+
 
   # Get val/train set
-  size = math.floor(len(rest_df) * 0.15) if AUGMENT_DATA else 0.15
-  x_train, x_validation, y_train, y_validation = train_test_split(rest_df['id'], rest_df['attribute_ids'], test_size=size, stratify=rest_df['attribute_ids'])
+  size = math.floor(len(df) * 0.2) if AUGMENT_DATA else 0.2
+  x_train, x_validation, y_train, y_validation = train_test_split(df['id'], df['attribute_ids'], test_size=size, stratify=df['attribute_ids'])
   train_df = pd.DataFrame({"id": x_train, "attribute_ids": y_train})
   validation_df = pd.DataFrame({"id": x_validation, "attribute_ids": y_validation})
   
