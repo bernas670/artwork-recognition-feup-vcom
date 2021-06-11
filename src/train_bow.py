@@ -31,33 +31,36 @@ def train_classifier(classifier, X, y):
         print('->', scores, end='\n\n')
 
 
-def grid_search(X, y):
+def grid_search(X, y, filename='grid_results.p'):
     estimator = svm.SVC()
 
     param_grid = {
         'C': [0.1, 1, 10],
         'kernel': ['rbf'],
         'gamma': ['scale', 'auto'],
-        'class_weight': [None, 'balanced'],
+        'class_weight': [None],
     }
 
     grid = GridSearchCV(
-        estimator=estimator, param_grid=param_grid,
-        cv=5, return_train_score=True, refit=False,
+        estimator=estimator, 
+        param_grid=param_grid,
+        cv=5, 
+        return_train_score=True, 
+        refit='accuracy',
         scoring=['accuracy', 'f1_macro', 'f1_micro'],
         n_jobs=-2, verbose=4)
 
     results = grid.fit(X, y)
 
-    with open(os.path.join('output', f'grid_results.p'), 'wb') as out_file:
+    with open(os.path.join('output', filename), 'wb') as out_file:
         pickle.dump(results, out_file)
 
-
+ 
 if __name__ == '__main__':
-    X, y = load_dataset("output/processed_1000.p")
+    X, y = load_dataset("output/processed_500.p")
     num_classes = len(set(y))
 
-    grid_search(X, y)
+    grid_search(X, y, filename="grid_results_500.p")
 
     # clf = svm.SVC(kernel='sigmoid')
 

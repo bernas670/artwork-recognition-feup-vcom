@@ -14,18 +14,28 @@ img_dir = "data/images"
 out_dir = "output"
 
 if __name__ == '__main__':
-    data = pd.read_csv("data/multiclass.csv")
+    data = pd.read_csv("data/multiclass_train.csv")
 
-    img_ids = []
-    labels = []
+    train_img_ids = []
+    train_labels = []
     for _, row in data.iterrows():
-        img_ids.append(row['id'])
-        labels.append(row['attribute_ids'])
+        train_img_ids.append(row['id'])
+        train_labels.append(row['attribute_ids'])
+    
+    train_image_paths = [os.path.join(img_dir, '{}.png'.format(id))
+                   for id in train_img_ids]
 
-    image_paths = [os.path.join(img_dir, '{}.png'.format(id))
-                   for id in img_ids]
+    test_img_ids = []
+    test_labels = []
+    for _, row in data.iterrows():
+        test_img_ids.append(row['id'])
+        test_labels.append(row['attribute_ids'])
 
-    n_words = 1000
+    test_image_paths = [os.path.join(img_dir, '{}.png'.format(id))
+                   for id in train_img_ids]
+
+    # 500 1000 2500
+    n_words = 2500
     existing_descriptors = None
 
     # Check if descriptor files exists
@@ -41,7 +51,7 @@ if __name__ == '__main__':
     else:
         # Create vocabulary
         vocab = Vocabulary(n_words)
-        descriptors = vocab.train(image_paths, existing_descriptors)
+        descriptors = vocab.train(train_image_paths, existing_descriptors)
         # Save vocabulary
         vocab.save(os.path.join(out_dir, f'vocab_{n_words}.npy'))
 
@@ -53,16 +63,24 @@ if __name__ == '__main__':
 
     # Featurize images using BOW
     featurizer = FeatureExtractor(vocab)
-    features = []
-    for path in tqdm(image_paths, desc="Extracting BoW feature vector"):
+    train_features = []
+    for path in tqdm(train_image_paths, desc="Extracting train BoW feature vector"):
         img = open_image(path)
         bow = featurizer.featurize(img)
-        features.append(bow)
+        train_features.append(bow)
+
+    test_features = []
+    for path in tqdm(test_image_paths, desc="Extracting test BoW feature vector"):
+        img = open_image(path)
+        bow = featurizer.featurize(img)
+        test_features.append(bow)
 
     dataset = {
-        'ids': img_ids,
-        'X': features,
-        'y': labels,
+        'ids': train_img_ids,
+        'X_train': train_features,
+        'y_train': train_labels,
+        'X_test': test_features,
+        'y_test': test_labels,
         'vocab_size': n_words,
     }
 
