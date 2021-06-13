@@ -8,7 +8,7 @@ from keras_preprocessing.image import ImageDataGenerator
 physical_devices = tf.config.list_physical_devices('GPU') 
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
 import dl_models
-import augment_data
+import helper.augment_data as augment_data
 from sklearn.model_selection import train_test_split
 from matplotlib import pyplot as plt
 

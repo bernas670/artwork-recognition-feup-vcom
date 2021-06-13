@@ -5,7 +5,7 @@ from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import cross_validate, cross_val_predict, GridSearchCV
 from sklearn import svm
 
-from utils import plot_confusion_matrix
+from helper.utils import plot_confusion_matrix
 
 
 def load_dataset(path):

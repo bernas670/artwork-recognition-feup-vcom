@@ -1,8 +1,5 @@
 import cv2 as cv
 import numpy as np
-from tqdm import tqdm
-
-from utils import open_image
 from vocabulary import Vocabulary
 
 

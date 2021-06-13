@@ -78,7 +78,7 @@ def get_vgg19_cam(class_count, activation='softmax'):
     classes=class_count,
   )
   new_model = tf.keras.models.Sequential()  
-
+  model.summary()
   for layer in model.layers[:-3]:
     new_model.add(layer)
 

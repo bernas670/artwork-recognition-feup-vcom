@@ -1,14 +1,10 @@
-from sklearn.model_selection import train_test_split
 import os
-import cv2 as cv
-import numpy as np
 import pandas as pd
 import pickle
-import matplotlib.pyplot as plt
 from tqdm import tqdm
 from vocabulary import Vocabulary
 from feature_extractor import FeatureExtractor
-from utils import open_image
+from helper.utils import open_image
 
 img_dir = "data/images"
 out_dir = "output"

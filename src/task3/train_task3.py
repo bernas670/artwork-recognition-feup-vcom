@@ -7,13 +7,11 @@ from keras_preprocessing.image import ImageDataGenerator
 physical_devices = tf.config.list_physical_devices('GPU') 
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
 import dl_models
-import augment_data
-
 BATCH_SIZE = 32
 CLASS_COUNT = 2
 EPOCHS = 10
 MODEL_DIR = "models"
-MODEL_NAME = "vgg_cam" + "_" + datetime.datetime.now().strftime("%d-%H%M%S")
+MODEL_NAME = "vgg_bitds" + "_" + datetime.datetime.now().strftime("%d-%H%M%S")
 TRAINING_SET_CSV = "data_task3/dataset/training_set.csv"
 VALIDATION_SET_CSV = "data_task3/dataset/validation_set.csv"
 TRAINING_IMAGE_FOLDER = "data_task3/dataset/training_set"
@@ -68,11 +66,15 @@ if __name__ == '__main__':
   train_df = pd.read_csv(TRAINING_SET_CSV)       
   train_df['id'] = train_df['id'] + ".jpg"
   train_df['attribute_ids'] = train_df['attribute_ids'].astype(str)
-
+  train_df = train_df.drop("Unnamed: 0", axis=1)
   # Get validation dataset csv
   val_df = pd.read_csv(VALIDATION_SET_CSV)      
   val_df['id'] = val_df['id'] + ".jpg"
   val_df['attribute_ids'] = val_df['attribute_ids'].astype(str)
+  # val_df = train_df.drop("Unnamed: 0", axis=1)
+
+  print(train_df.groupby('attribute_ids').count().to_dict())
+  print(val_df.groupby('attribute_ids').count().to_dict())
 
   # Get model
   model, image_dims, preprocessing_func = dl_models.get_vgg19_cam(CLASS_COUNT, activation="softmax")
